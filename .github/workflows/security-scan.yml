@@ -1,13 +1,18 @@
-name: IaC Security Scan (Shift-Left)
+name: Autonomous SecOps Pipeline
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  security-scan:
+  security-scan-and-remediate:
     runs-on: ubuntu-latest
     
+    # Additional permissions for the GitHub token to allow PR creation
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -21,3 +26,44 @@ jobs:
           soft_fail: false
           output_format: cli,json
           output_file_path: console,checkov-report.json
+
+      # THE FOLLOWING STEPS WILL ONLY RUN IF CHECKOV FAILS (VULNERABILITY DETECTED)
+
+      - name: Setup Python for AI Remediation
+        if: failure()
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        if: failure()
+        run: pip install -r requirements.txt
+
+      - name: Run AI Auto-Remediation Agent
+        if: failure()
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python remediate.py
+
+      - name: Create Pull Request with Security Fix
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "AI Security Agent"
+          git config --global user.email "ai-agent@secops.local"
+          
+          # Create a new branch with a unique name based on the workflow run ID
+          BRANCH_NAME="auto-remediation-${{ github.run_id }}"
+          git checkout -b $BRANCH_NAME
+          
+          # Add the remediated main.tf file
+          git add main.tf
+          git commit -m "fix: AI automated security remediation"
+          git push origin $BRANCH_NAME
+          
+          # Create a Pull Request using GitHub CLI
+          gh pr create --title "🚨 Security Fix: Automated IaC Remediation" \
+                       --body "Checkov detected security vulnerabilities in Terraform code. This PR contains AI-generated fixes to secure the infrastructure." \
+                       --base main \
+                       --head $BRANCH_NAME

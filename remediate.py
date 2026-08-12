@@ -2,7 +2,9 @@ import os
 import json
 import re
 from groq import Groq
+from dotenv import load_dotenv
 
+load_dotenv()
 # Initialize the Groq client. It expects the GROQ_API_KEY environment variable.
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
@@ -71,7 +73,7 @@ def main():
     # 3. Call the LLM
     response = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
-        model="llama3-8b-8192", 
+        model="llama-3.1-8b-instant", 
         temperature=0.1 # Low temperature for deterministic, technical output
     )
 
