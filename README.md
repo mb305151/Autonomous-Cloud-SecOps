@@ -2,7 +2,7 @@
 
 ## 👨‍💻 About The Project & Context
 
-I am a Cybersecurity student passionate about cloud security, DevSecOps, and automation, aiming to build a professional career in this field.
+I am a Cybersecurity student passionate about app/cloud security, DevSecOps, and automation, aiming to build a professional career in this field.
 
 This repository was created as a self-study practical project to sharpen my hands-on skills in Infrastructure as Code (IaC) security, Shift-Left methodologies, and integrating Artificial Intelligence into CI/CD pipelines.
 
